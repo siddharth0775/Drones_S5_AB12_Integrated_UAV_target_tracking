@@ -1,0 +1,1 @@
+time_s,target_detected,error_x_px,error_y_px,angle_x_deg,angle_y_deg,estimated_distance_m,drone_x_m,drone_y_m,drone_z_m,desired_x_m,desired_y_m,desired_z_m,yaw_deg

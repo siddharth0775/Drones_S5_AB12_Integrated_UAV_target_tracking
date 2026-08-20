@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+
+  <model name="tracking_target">
+
+    <pose>0 0 0.5 0 0 0</pose>
+
+    <link name="target_link">
+
+      <visual name="target_visual">
+
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+
+        <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <specular>0 0 0 1</specular>
+        </material>
+
+      </visual>
+
+      <collision name="target_collision">
+
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+
+      </collision>
+
+    </link>
+
+  </model>
+
+</sdf>

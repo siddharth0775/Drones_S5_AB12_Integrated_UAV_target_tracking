@@ -1,0 +1,9 @@
+Metric,Value
+Samples,1547.0
+Mean position error (m),0.32939260384265556
+RMSE position error (m),0.36457731798705645
+Maximum position error (m),0.8286865450522908
+Mean pixel error (px),60.575231941027184
+RMSE pixel error (px),74.40247670198144
+Maximum pixel error (px),158.31562065680717
+Target detection rate (%),94.18228829993535
