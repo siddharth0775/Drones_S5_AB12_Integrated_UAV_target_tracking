@@ -2,7 +2,7 @@
 
 ## Drones_S5_AB12_Integrated_UAV_target_tracking
 
-![Amrita logo](assets/screenshots/Amrita logo.jpeg)
+![Amrita logo](assets/screenshots/Amrita_logo.jpeg)
 
 ---
 
