@@ -2,7 +2,7 @@
 
 ## Drones_S5_AB12_Integrated_UAV_target_tracking
 
-![Amrita logo](assets/screenshots/WhatsApp Image 2026-08-20 at 12.18.11 PM.jpeg)
+![Amrita logo](assets/screenshots/Amrita logo.jpeg)
 
 ---
 
