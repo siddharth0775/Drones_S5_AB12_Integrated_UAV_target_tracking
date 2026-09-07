@@ -443,7 +443,7 @@ The PyBullet implementation demonstrated:
 
 **Figures:** 
 
-![pybullet_drone_tracking](.assets/screenshots/pybullet_drone_tracking.png)
+![pybullet_drone_tracking](assets/screenshots/pybullet_drone_tracking.png)
 
 ![01_position_error_vs_time](.results/01_position_error_vs_time.png)
 
