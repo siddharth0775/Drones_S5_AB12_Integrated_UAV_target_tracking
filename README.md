@@ -445,11 +445,11 @@ The PyBullet implementation demonstrated:
 
 ![pybullet_drone_tracking](assets/screenshots/pybullet_drone_tracking.png)
 
-![01_position_error_vs_time](.results/01_position_error_vs_time.png)
+![01_position_error_vs_time](simulation/pybullet/results/01_position_error_vs_time.png)
 
-![02_pixel_error_vs_time](.results/02_pixel_error_vs_time.png)
+![02_pixel_error_vs_time](simulation/pybullet/results/02_pixel_error_vs_time.png)
 
-![03_top_view_trajectory](.results/03_top_view_trajectory.png)
+![03_top_view_trajectory](simulation/pybullet/results/03_top_view_trajectory.png)
 
 ### PyBullet Quantitative Results
 
@@ -481,7 +481,7 @@ The PX4/Gazebo implementation demonstrated:
 
 **Figures:** 
 
-![px4_gazebo](.assets/screenshots/px4_gazebo.png)
+![px4_gazebo](assets/screenshots/px4_gazebo.png)
 
 ## 16. Comparison of Simulation Platforms
 
