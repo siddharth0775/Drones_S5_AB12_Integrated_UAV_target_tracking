@@ -1332,7 +1332,7 @@ The overall objective is to reduce the image-position error through repeated det
 
 ---
 
-## 18. Implementation Notes
+### 18. Implementation Notes
 
 - The circular trajectory equations apply when the target follows a circular path.
 - The image-centre error equations apply when the desired target position is the centre of the image.
