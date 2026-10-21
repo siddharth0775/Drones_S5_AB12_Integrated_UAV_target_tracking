@@ -31,6 +31,9 @@ from gym_pybullet_drones.envs.CtrlAviary import CtrlAviary
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
 
+from minimap import DroneMinimap
+from obstacle_avoidance import ObstacleAvoidance
+
 
 # ================================================================
 # SIMULATION PARAMETERS
@@ -42,7 +45,14 @@ CTRL_FREQ = 48
 FRAME_W = 320
 FRAME_H = 240
 
-TARGET_MOVE_SPEED = 1.5
+# Slower manual target movement to give the drone time to follow.
+TARGET_MOVE_SPEED = 0.5
+
+# Gentle expanding spiral.
+SPIRAL_START_RADIUS = 0.08
+SPIRAL_MAX_RADIUS = 0.70
+SPIRAL_RADIAL_GROWTH = 0.025
+SPIRAL_ANGULAR_SPEED = 0.45
 
 # ================================================================
 # TRACKING DATA LOGGER
@@ -177,40 +187,72 @@ def move_target_sphere(
     )
 
 
+def spawn_obstacle_sphere(
+    env,
+    position=(1.0, 0.0, 1.0),
+    radius=0.25,
+    rgba=(0.95, 0.15, 0.10, 1.0),
+):
+    """Create a visible, collidable spherical obstacle in PyBullet."""
+    collision_id = p.createCollisionShape(
+        p.GEOM_SPHERE,
+        radius=radius,
+        physicsClientId=env.CLIENT,
+    )
+    visual_id = p.createVisualShape(
+        p.GEOM_SPHERE,
+        radius=radius,
+        rgbaColor=rgba,
+        physicsClientId=env.CLIENT,
+    )
+    body_id = p.createMultiBody(
+        baseMass=0,
+        baseCollisionShapeIndex=collision_id,
+        baseVisualShapeIndex=visual_id,
+        basePosition=list(position),
+        physicsClientId=env.CLIENT,
+    )
+    return body_id
+
+
 # ================================================================
 # KEYBOARD
 # ================================================================
+
 
 def get_target_keyboard_input():
 
     keys = p.getKeyboardEvents()
 
-    move = np.array(
-        [0.0, 0.0, 0.0]
-    )
-
-    # PyBullet keyboard flags
+    move = np.array([0.0, 0.0, 0.0])
     pressed = p.KEY_IS_DOWN
 
-    if ord('w') in keys and keys[ord('w')] & pressed:
+    if ord("w") in keys and keys[ord("w")] & pressed:
         move[0] += 1.0
 
-    if ord('s') in keys and keys[ord('s')] & pressed:
+    if ord("s") in keys and keys[ord("s")] & pressed:
         move[0] -= 1.0
 
-    if ord('a') in keys and keys[ord('a')] & pressed:
+    if ord("a") in keys and keys[ord("a")] & pressed:
         move[1] -= 1.0
 
-    if ord('d') in keys and keys[ord('d')] & pressed:
+    if ord("d") in keys and keys[ord("d")] & pressed:
         move[1] += 1.0
 
-    if ord('r') in keys and keys[ord('r')] & pressed:
+    if ord("r") in keys and keys[ord("r")] & pressed:
         move[2] += 1.0
 
-    if ord('f') in keys and keys[ord('f')] & pressed:
+    if ord("f") in keys and keys[ord("f")] & pressed:
         move[2] -= 1.0
 
-    return move, False
+    # Trigger only once when Q is initially pressed.
+    q_pressed = (
+        ord("q") in keys
+        and bool(keys[ord("q")] & p.KEY_WAS_TRIGGERED)
+    )
+
+    return move, q_pressed
+
 
 
 # ================================================================
@@ -316,6 +358,25 @@ def main():
         env
     )
 
+    # ============================================================
+    # COLLISION AVOIDANCE SETUP
+    # ============================================================
+    # First static obstacle for testing. Move its position if it
+    # interferes with the initial takeoff/target location.
+    obstacle_center = np.array([1.0, 0.0, 1.0], dtype=float)
+    obstacle_radius = 0.25
+    obstacle_body_id = spawn_obstacle_sphere(
+        env,
+        position=obstacle_center,
+        radius=obstacle_radius,
+    )
+
+    avoidance = ObstacleAvoidance(safety_margin=0.45)
+    avoidance.add_obstacle(
+        position=obstacle_center,
+        radius=obstacle_radius,
+    )
+
     action = np.zeros(
         (1, 4)
     )
@@ -330,6 +391,17 @@ def main():
     commanded_yaw = 0.0
 
     step = 0
+    
+    # Spiral mode state
+    spiral_active = False
+    spiral_elapsed = 0.0
+    spiral_center = manual_target_pos.copy()
+    spiral_start_z = float(manual_target_pos[2])
+    
+    minimap = DroneMinimap(
+        results_dir=RESULTS_DIR,
+        redraw_every=3,
+    )
 
     print()
     print("=" * 60)
@@ -340,6 +412,8 @@ def main():
     print("W / S : forward / backward")
     print("A / D : left / right")
     print("R / F : up / down")
+    print("Q : toggle spiral target movement")
+    print("RED SPHERE : static obstacle (avoidance test)")
     print()
     print("ESC : quit")
     print()
@@ -350,30 +424,65 @@ def main():
 
         while True:
 
+                            
             # ====================================================
-            # 1. TARGET KEYBOARD
+            # 1. TARGET KEYBOARD + SPIRAL MODE
             # ====================================================
-
-            move, _ = (
-                get_target_keyboard_input()
-            )
-
-            manual_target_pos += (
-                move
-                * TARGET_MOVE_SPEED
-                * dt
-            )
-
+            
+            move, q_pressed = get_target_keyboard_input()
+            
+            if q_pressed:
+                spiral_active = not spiral_active
+            
+                if spiral_active:
+                    # Offset the centre so the spiral starts exactly
+                    # at the target's current position.
+                    spiral_center = manual_target_pos.copy()
+                    spiral_center[0] -= SPIRAL_START_RADIUS
+            
+                    spiral_start_z = float(manual_target_pos[2])
+                    spiral_elapsed = 0.0
+            
+                    print("[TARGET] Spiral mode ON")
+            
+                else:
+                    print("[TARGET] Spiral mode OFF")
+            
+            if spiral_active:
+                spiral_elapsed += dt
+            
+                radius = min(
+                    SPIRAL_START_RADIUS
+                    + SPIRAL_RADIAL_GROWTH * spiral_elapsed,
+                    SPIRAL_MAX_RADIUS,
+                )
+            
+                angle = SPIRAL_ANGULAR_SPEED * spiral_elapsed
+            
+                manual_target_pos[0] = (
+                    spiral_center[0] + radius * np.cos(angle)
+                )
+                manual_target_pos[1] = (
+                    spiral_center[1] + radius * np.sin(angle)
+                )
+                manual_target_pos[2] = spiral_start_z
+            
+            else:
+                # Original manual movement, now at the reduced speed.
+                manual_target_pos += move * TARGET_MOVE_SPEED * dt
+            
             manual_target_pos[2] = max(
                 manual_target_pos[2],
-                0.15
+                0.15,
             )
-
+            
             move_target_sphere(
                 env,
                 target_body_id,
-                manual_target_pos
+                manual_target_pos,
             )
+
+
 
             # ====================================================
             # 2. CAMERA
@@ -474,6 +583,20 @@ def main():
                     * max_lead
                 )
 
+            # ====================================================
+            # 7.5. COLLISION-AVOIDANCE SAFETY FILTER
+            # ====================================================
+            # Filter the proposed position before it becomes the
+            # commanded setpoint. The obstacle is also visible and
+            # collidable in the PyBullet world.
+            target_step_pos = avoidance.filter_setpoint(
+                current_position=cur_pos,
+                desired_position=target_step_pos,
+            )
+
+            if avoidance.active and step % 24 == 0:
+                print("[SAFETY] Obstacle avoidance active")
+
             commanded_pos = target_step_pos
 
             # ====================================================
@@ -534,6 +657,16 @@ def main():
             new_state = obs[0]
             
             new_drone_pos = new_state[0:3]
+            
+            # ====================================================
+            # LIVE MINIMAP
+            # ====================================================
+            
+            minimap.update(
+                elapsed_time=time.time() - experiment_start,
+                drone_position=new_drone_pos,
+                target_position=manual_target_pos,
+            )
             
             # ----------------------------------------------------
             # 3D POSITION ERROR
@@ -746,6 +879,21 @@ def main():
                 1
             )
 
+            safety_text = (
+                "AVOIDANCE ACTIVE" if avoidance.active
+                else "PATH CLEAR"
+            )
+            safety_color = (0, 0, 255) if avoidance.active else (0, 255, 0)
+            cv2.putText(
+                hud,
+                safety_text,
+                (10, 101),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.45,
+                safety_color,
+                1,
+            )
+
             cv2.putText(
                 hud,
                 "WASD/RF: move target | ESC: quit",
@@ -819,6 +967,11 @@ def main():
                 break
 
     finally:
+        
+        try:
+            minimap.close()
+        except Exception as e:
+            print(f"Minimap cleanup warning: {e}")
         
         # ========================================================
         # CLOSE TRACKING LOG
