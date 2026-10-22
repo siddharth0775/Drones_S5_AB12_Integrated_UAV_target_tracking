@@ -1231,7 +1231,7 @@ The least-squares estimate is
 
 
 $$
-[u, v]^T = (A^T A)^{-1} A^+ b
+[u, v]^T = (A^T A)^{-1} A^T b
 $$
 
 
