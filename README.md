@@ -884,7 +884,7 @@ The complete camera projection equation is
 
 This equation combines the coordinate-frame transformation with the camera's projection model.
 
-![pinhole_camera](assets/screenshots/pinhole_camera.png)
+![Pinhole_camera](assets/screenshots/Pinhole_camera.png)
 
 ---
 
