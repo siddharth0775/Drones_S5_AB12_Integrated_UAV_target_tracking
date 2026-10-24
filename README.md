@@ -902,7 +902,7 @@ Let:
 For an object approximately perpendicular to the viewing direction,
 
 
-`h_px = (f_px * H_obj) / Z`
+$h_px = (f_px * H_obj) / Z$
 
 Rearranging gives
 
@@ -1071,11 +1071,11 @@ Quaternion multiplication combines rotations, with the resulting orientation dep
 
 The relative position of the target with respect to the UAV is defined as
 
-`p_rel(t) = p_T(t) - p_D(t)`
+$p_rel(t) = p_T(t) - p_D(t)$
 
 Expanding the relative position,
 
-`d(t) = sqrt((x_T - x_D)^2 + (y_T - y_D)^2 + (z_T - z_D)^2)`
+$d(t) = sqrt((x_T - x_D)^2 + (y_T - y_D)^2 + (z_T - z_D)^2)$
 
 The Euclidean distance between the target and UAV is
 
