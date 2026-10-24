@@ -859,7 +859,7 @@ $$
 
 Using homogeneous coordinates, the projection equation is
 
-`Z_C [u, v, 1]^T = K [X_C, Y_C, Z_C]^T`
+$Z_C [u, v, 1]^T = K [X_C, Y_C, Z_C]^T$
 
 
 This equation relates three-dimensional camera coordinates to two-dimensional image coordinates.
