@@ -880,7 +880,7 @@ where:
 
 The complete camera projection equation is
 
-`Z_C [u, v, 1]^T = K (R_CW P_W + t_CW)`
+$Z_C [u, v, 1]^T = K (R_CW P_W + t_CW)$
 
 This equation combines the coordinate-frame transformation with the camera's projection model.
 
