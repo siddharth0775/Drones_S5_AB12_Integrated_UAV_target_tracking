@@ -870,7 +870,7 @@ The projection loses direct depth information because the image contains only tw
 
 The transformation from world coordinates to camera coordinates can be represented as
 
-`P_C = R_CW P_W + t_CW`
+$P_C = R_CW P_W + t_CW$
 
 where:
 
